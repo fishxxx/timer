@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // UI Elements
+    // ── UI Elements ──────────────────────────────────────────────────
     const timeDisplay = document.getElementById('timeDisplay');
     const statusIndicator = document.getElementById('statusIndicator');
     const timerPanel = document.getElementById('timerPanel');
@@ -29,19 +29,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressTimeSpent = document.getElementById('progressTimeSpent');
     const progressTimeEst = document.getElementById('progressTimeEst');
 
-    // Audio Context (initialized on first click to comply with browser policies)
+    // ── Audio ─────────────────────────────────────────────────────────
+    // AudioContext must be created after a user gesture (browser policy).
+    // So we lazy-init it on the first button click via initAudio().
     let audioCtx = null;
 
-    // State Variables
-    let state = 'IDLE'; // IDLE, POMODORO, FLASHING, OVERTIME, REST
-    let pomodoroCount = 0;
+    // ── State Machine ────────────────────────────────────────────────
+    // The timer goes through these states in order:
+    //   IDLE → POMODORO → FLASHING (15s) → OVERTIME → (stop) → REST → IDLE
+    let state = 'IDLE';
+    let pomodoroCount = 0;       // Tracks completed pomodoros for long-rest logic
     let currentTag = 'WORK';
-    let targetTimeMs = 0;
-    let startTimeMs = 0;
+    let targetTimeMs = 0;        // How long the current phase should last
+    let startTimeMs = 0;         // Date.now() when current phase started
     let elapsedMs = 0;
     let timerInterval = null;
-    let lastTickMinute = -1;
-    let warningPlayed = false;
+    let lastTickMinute = -1;     // Used to play tick sound once per minute
+    let warningPlayed = false;   // Prevents 5-second warning from repeating
 
     // Load logs on startup
     loadLogs();
@@ -98,6 +102,31 @@ document.addEventListener('DOMContentLoaded', () => {
         logFilter.addEventListener('change', loadLogs);
     }
 
+    // ── Data Export ──────────────────────────────────────────────────
+    // Exports ALL localStorage data (logs, projects, settings) as a
+    // downloadable JSON file. This is the user's only backup mechanism
+    // since localStorage can be wiped by clearing browser cache.
+    const exportDataBtn = document.getElementById('exportDataBtn');
+    if (exportDataBtn) {
+        exportDataBtn.addEventListener('click', () => {
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                version: 'v1.3.0',
+                logs: JSON.parse(localStorage.getItem('cubi_logs') || '[]'),
+                projects: JSON.parse(localStorage.getItem('cubi_projects') || '{}'),
+                lastProject: localStorage.getItem('cubi_last_project') || ''
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `cubi-backup-${dateStr}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
     cancelEditBtn.addEventListener('click', () => {
         editModal.style.display = 'none';
         editingLogId = null;
@@ -137,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProjectUI();
     });
 
-    // Audio Synthesis (Web Audio API)
+    // ── Audio Synthesis (Web Audio API) ──────────────────────────────
+    // All sounds are generated procedurally — no audio files needed.
+    // Three profiles: 'mechanical' (realistic clock), 'electronic'
+    // (classic digital beeps), 'mute' (silent).
     function initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -304,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playDing(0.3);
     }
 
-    // Timer Logic
+    // ── Timer Logic ──────────────────────────────────────────────────
     function startPomodoro() {
         const durationMinutes = parseFloat(durationSelect.value);
         targetTimeMs = durationMinutes * 60 * 1000;
@@ -359,8 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateDisplay(remaining / 1000);
             }
         } else if (state === 'FLASHING') {
+            // FLASHING lasts exactly 15 seconds with red border animation.
+            // After 15s, we assume the user is in a flow state and switch
+            // to OVERTIME which counts up silently with an orange display.
             const overtimeMs = runTime - targetTimeMs;
-            if (overtimeMs >= 15000) { // 15 seconds
+            if (overtimeMs >= 15000) {
                 enterOvertimeState(runTime);
             }
             updateDisplay(Math.abs(targetTimeMs - runTime) / 1000); // Show 0 or slightly negative
@@ -390,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalSeconds = Math.floor(totalRunTime / 1000);
         const wasCompleted = (state === 'FLASHING' || state === 'OVERTIME');
         
-        // Log the session if it lasted more than 10 seconds
+        // Only log sessions > 10 seconds to avoid accidental taps
         if (totalSeconds > 10) {
             saveLog(currentTag, totalSeconds, state === 'OVERTIME');
             updateProjectTime(totalSeconds);
@@ -405,6 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startRest() {
+        // Standard Pomodoro technique: 5 min rest, every 4th cycle → 15 min
         const restMinutes = (pomodoroCount % 4 === 0) ? 15 : 5;
         targetTimeMs = restMinutes * 60 * 1000;
         startTimeMs = Date.now();
@@ -437,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDisplay(parseFloat(durationSelect.value) * 60);
     }
 
-    // Utilities
+    // ── Display Utilities ────────────────────────────────────────────
     function updateDisplay(totalSeconds, isOvertime = false) {
         const sign = isOvertime ? '+' : '';
         const absSeconds = Math.floor(Math.abs(totalSeconds));
@@ -516,7 +552,9 @@ document.addEventListener('DOMContentLoaded', () => {
         logList.prepend(li);
     }
 
-    // Project Management Logic
+    // ── Project Management ───────────────────────────────────────────
+    // All project data is stored in localStorage under 'cubi_projects'.
+    // Each project tracks { totalSeconds, estimatedSeconds }.
     function getProjects() {
         return JSON.parse(localStorage.getItem('cubi_projects') || '{}');
     }

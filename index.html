@@ -85,10 +85,13 @@
         <section class="session-log">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h2 style="margin-bottom: 0;">Session Logs</h2>
-                <select id="logFilter" class="tag" style="padding: 0.3rem 0.8rem; outline: none; appearance: auto; -webkit-appearance: auto;">
-                    <option value="today">Today</option>
-                    <option value="all">All Time</option>
-                </select>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button id="exportDataBtn" class="tag" title="Export all data as JSON">📥 Export</button>
+                    <select id="logFilter" class="tag" style="padding: 0.3rem 0.8rem; outline: none; appearance: auto; -webkit-appearance: auto;">
+                        <option value="today">Today</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
             </div>
             <ul class="log-list" id="logList">
                 <!-- Logs will be populated here -->
@@ -96,7 +99,7 @@
         </section>
     </main>
 
-    <div class="version-tag">v1.2.0</div>
+    <div class="version-tag">v1.3.0</div>
 
     <!-- Edit Log Modal -->
     <div id="editLogModal" class="modal-overlay" style="display: none;">
