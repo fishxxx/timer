@@ -86,6 +86,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h2 style="margin-bottom: 0;">Session Logs</h2>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button id="projectStatsBtn" class="tag" title="View Project Statistics">📊 Stats</button>
                     <button id="exportDataBtn" class="tag" title="Export all data as JSON">📥 Export</button>
                     <select id="logFilter" class="tag" style="padding: 0.3rem 0.8rem; outline: none; appearance: auto; -webkit-appearance: auto;">
                         <option value="today">Today</option>
@@ -99,7 +100,7 @@
         </section>
     </main>
 
-    <div class="version-tag">v1.3.0</div>
+    <div class="version-tag">v1.4.0</div>
 
     <!-- Edit Log Modal -->
     <div id="editLogModal" class="modal-overlay" style="display: none;">
@@ -123,6 +124,19 @@
             <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end;">
                 <button id="cancelEditBtn" class="tag">Cancel</button>
                 <button id="saveEditBtn" class="tag active">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Stats Modal -->
+    <div id="projectStatsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content timer-glass-panel" style="padding: 2rem; max-width: 400px; width: 90%; text-align: left; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.2rem; margin: 0;">Project Statistics</h3>
+                <button id="closeStatsBtn" class="edit-log-btn" style="font-size: 1.2rem; opacity: 0.8;">✖</button>
+            </div>
+            <div id="projectStatsContent" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Stats will be populated here -->
             </div>
         </div>
     </div>

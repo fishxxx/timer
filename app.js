@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const logList = document.getElementById('logList');
     const logFilter = document.getElementById('logFilter');
 
+    const projectStatsBtn = document.getElementById('projectStatsBtn');
+    const projectStatsModal = document.getElementById('projectStatsModal');
+    const closeStatsBtn = document.getElementById('closeStatsBtn');
+    const projectStatsContent = document.getElementById('projectStatsContent');
+
     const editModal = document.getElementById('editLogModal');
     const editLogProject = document.getElementById('editLogProject');
     const editLogTag = document.getElementById('editLogTag');
@@ -111,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDataBtn.addEventListener('click', () => {
             const exportData = {
                 exportDate: new Date().toISOString(),
-                version: 'v1.3.0',
+                version: 'v1.4.0',
                 logs: JSON.parse(localStorage.getItem('cubi_logs') || '[]'),
                 projects: JSON.parse(localStorage.getItem('cubi_projects') || '{}'),
                 lastProject: localStorage.getItem('cubi_last_project') || ''
@@ -131,6 +136,57 @@ document.addEventListener('DOMContentLoaded', () => {
         editModal.style.display = 'none';
         editingLogId = null;
     });
+
+    if (projectStatsBtn) {
+        projectStatsBtn.addEventListener('click', showProjectStats);
+    }
+
+    if (closeStatsBtn) {
+        closeStatsBtn.addEventListener('click', () => {
+            projectStatsModal.style.display = 'none';
+        });
+    }
+
+    function showProjectStats() {
+        const projects = getProjects();
+        projectStatsContent.innerHTML = '';
+        
+        const projectKeys = Object.keys(projects);
+        if (projectKeys.length === 0) {
+            projectStatsContent.innerHTML = '<div style="color: var(--text-secondary); text-align: center;">No project data yet.</div>';
+        } else {
+            // Sort projects by total time spent, descending
+            projectKeys.sort((a, b) => projects[b].totalSeconds - projects[a].totalSeconds).forEach(pName => {
+                const data = projects[pName];
+                const spentH = (data.totalSeconds / 3600).toFixed(2);
+                const estH = data.estimatedSeconds > 0 ? (data.estimatedSeconds / 3600).toFixed(2) : '0.00';
+                
+                let percent = 0;
+                if (data.estimatedSeconds > 0) {
+                    percent = Math.min(100, Math.max(0, (data.totalSeconds / data.estimatedSeconds) * 100));
+                }
+
+                const itemHtml = `
+                    <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <span>${pName}</span>
+                            <span style="color: var(--accent);">${data.estimatedSeconds > 0 ? percent.toFixed(1) + '%' : ''}</span>
+                        </div>
+                        <div class="progress-bar-bg" style="margin-bottom: 0.5rem; height: 6px;">
+                            <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">
+                            <span>Total: ${spentH}h</span>
+                            <span>Est: ${estH}h</span>
+                        </div>
+                    </div>
+                `;
+                projectStatsContent.innerHTML += itemHtml;
+            });
+        }
+        
+        projectStatsModal.style.display = 'flex';
+    }
 
     saveEditBtn.addEventListener('click', () => {
         if (!editingLogId) return;
