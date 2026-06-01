@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDataBtn.addEventListener('click', () => {
             const exportData = {
                 exportDate: new Date().toISOString(),
-                version: 'v1.4.0',
+                version: 'v1.4.1',
                 logs: JSON.parse(localStorage.getItem('cubi_logs') || '[]'),
                 projects: JSON.parse(localStorage.getItem('cubi_projects') || '{}'),
                 lastProject: localStorage.getItem('cubi_last_project') || ''
@@ -417,6 +417,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = Date.now();
         const runTime = now - startTimeMs;
         
+        // Play tick sound every minute during POMODORO and OVERTIME
+        if (state === 'POMODORO' || state === 'OVERTIME') {
+            const elapsedMinutes = Math.floor(runTime / 60000);
+            if (elapsedMinutes > lastTickMinute) {
+                if (state === 'OVERTIME') {
+                    playTick();
+                    setTimeout(playTick, 500); // Double tick to remind it's overtime
+                } else {
+                    playTick();
+                }
+                lastTickMinute = elapsedMinutes;
+            }
+        }
+
         if (state === 'REST') {
             const remaining = targetTimeMs - runTime;
             if (remaining <= 0) {
@@ -428,13 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (state === 'POMODORO') {
             const remaining = targetTimeMs - runTime;
             
-            // Check minute ticks
-            const elapsedMinutes = Math.floor(runTime / 60000);
-            if (elapsedMinutes > lastTickMinute) {
-                playTick();
-                lastTickMinute = elapsedMinutes;
-            }
-
             if (remaining <= 5000 && !warningPlayed) {
                 playWarning();
                 warningPlayed = true;
