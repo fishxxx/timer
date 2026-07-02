@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDataBtn.addEventListener('click', () => {
             const exportData = {
                 exportDate: new Date().toISOString(),
-                version: 'v1.4.1',
+                version: 'v1.4.2',
                 logs: JSON.parse(localStorage.getItem('cubi_logs') || '[]'),
                 projects: JSON.parse(localStorage.getItem('cubi_projects') || '{}'),
                 lastProject: localStorage.getItem('cubi_last_project') || ''
@@ -193,10 +193,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const newProject = editLogProject.value.trim();
         const newTag = editLogTag.value;
-        const newDuration = parseInt(editLogDuration.value, 10);
+        const newDurationMinutes = parseFloat(editLogDuration.value);
+        const newDuration = Math.round(newDurationMinutes * 60);
         
         if (isNaN(newDuration) || newDuration < 1) {
-            alert('Duration must be at least 1 second.');
+            alert('Duration must be at least a fraction of a minute (e.g. 0.1).');
             return;
         }
 
@@ -608,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editingLogId = log.id;
             editLogProject.value = log.project || '';
             editLogTag.value = log.tag;
-            editLogDuration.value = log.duration;
+            editLogDuration.value = +(log.duration / 60).toFixed(2);
             editModal.style.display = 'flex';
         });
 
