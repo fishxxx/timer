@@ -68,11 +68,26 @@ body {
 /* Layout */
 .container {
     width: 100%;
-    max-width: 480px;
+    max-width: 800px;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+}
+
+.dashboard-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: start;
+    }
 }
 
 header {
@@ -395,8 +410,8 @@ select option {
     color: var(--text-secondary);
 }
 
-/* Session Log */
-.session-log {
+/* Session Log & Stats */
+.session-log, .project-stats-section {
     margin-top: 1rem;
     border-top: 1px solid var(--glass-border);
     padding-top: 1.5rem;

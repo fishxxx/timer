@@ -11,9 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logList = document.getElementById('logList');
     const logFilter = document.getElementById('logFilter');
 
-    const projectStatsBtn = document.getElementById('projectStatsBtn');
-    const projectStatsModal = document.getElementById('projectStatsModal');
-    const closeStatsBtn = document.getElementById('closeStatsBtn');
     const projectStatsContent = document.getElementById('projectStatsContent');
 
     const editModal = document.getElementById('editLogModal');
@@ -116,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportDataBtn.addEventListener('click', () => {
             const exportData = {
                 exportDate: new Date().toISOString(),
-                version: 'v1.4.2',
+                version: 'v1.4.3',
                 logs: JSON.parse(localStorage.getItem('cubi_logs') || '[]'),
                 projects: JSON.parse(localStorage.getItem('cubi_projects') || '{}'),
                 lastProject: localStorage.getItem('cubi_last_project') || ''
@@ -137,15 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editingLogId = null;
     });
 
-    if (projectStatsBtn) {
-        projectStatsBtn.addEventListener('click', showProjectStats);
-    }
-
-    if (closeStatsBtn) {
-        closeStatsBtn.addEventListener('click', () => {
-            projectStatsModal.style.display = 'none';
-        });
-    }
 
     function showProjectStats() {
         const projects = getProjects();
@@ -184,8 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 projectStatsContent.innerHTML += itemHtml;
             });
         }
-        
-        projectStatsModal.style.display = 'flex';
     }
 
     saveEditBtn.addEventListener('click', () => {
@@ -221,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editingLogId = null;
         loadLogs();
         updateProjectUI();
+        showProjectStats();
     });
 
     // ── Audio Synthesis (Web Audio API) ──────────────────────────────
@@ -561,6 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('cubi_logs', JSON.stringify(logs));
         
         renderLog(log);
+        showProjectStats(); // Update dashboard stats live
     }
 
     function loadLogs() {
@@ -573,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         logList.innerHTML = '';
         logs.forEach(renderLog);
+        showProjectStats(); // Ensure stats are rendered initially
     }
 
     function renderLog(log) {
@@ -613,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editModal.style.display = 'flex';
         });
 
-        logList.prepend(li);
+        logList.append(li);
     }
 
     // ── Project Management ───────────────────────────────────────────
